@@ -25,6 +25,7 @@ def register(name: str, extensions: List[str], reader, writer_map):
 def _filetype_from_path(path: pathlib.Path):
     ext = ""
     out = None
+    print(f"Path: {path}")
     for suffix in reversed(path.suffixes):
         ext = (suffix + ext).lower()
         if ext in extension_to_filetype:

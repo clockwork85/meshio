@@ -1,6 +1,7 @@
 """
 I/O for ERDC 2dm / 3dm file format
 """
+import logging 
 
 import numpy as np 
 
@@ -36,7 +37,7 @@ def read_buffer(f):
 
         if split[0] == "ND":
             # vertex
-            points.append([float(x) for x in split])
+            points.append([float(x) for x in split[2:]])
         elif split[0] == "E3T":
             # triangle
             data = [int(x) for x in split[2:]]
@@ -50,7 +51,43 @@ def read_buffer(f):
         else:
             continue
         
-        # Turn into numpy arrays
-        points = np.array(points)
-        facets = np.array(facets)
-        mats = np.array(mats)
+    # Convert into numpy arrays
+    cells = []
+    points = np.array(points)
+    facets = np.array(facets)
+    if facets.shape[1] == 3:
+        cells.append(CellBlock("triangle", facets-1))
+    elif facets.shape[1] == 4:
+        cells.append(CellBlock("tetrahedron", facets-1))
+    else:
+        logging.warning(
+            "meshio::dm only supports triangles and tetrahedrons. "
+            "Skipping {} polygons with {} nodes".format(facets.shape[0],
+                                                         f.shape[1])
+        )
+    # Unsure what to do with mats at this point.  Will check VTK later
+    # mats = np.array(mats)
+    return Mesh(points, cells)
+
+def write(filename, mesh):
+    for c in mesh.cells:
+        if c.type not in ["triangle", "tetrahedron"]:
+            raise WriteError(
+                "ERDC .2dm and .3dm files can only contain triangles or tetrahedrons."
+            )
+    with open_file(filename, "w") as f:
+        f.write(
+            "# Created by meshio v{}, {}\n".format(
+                __version__, datetime.datetime.now().isoformat()
+            )
+        )
+        for i, p in enumerate(mesh.points):
+            f.write("ND {} {} {} {}\n".format(i+1, p[0], p[1], p[1]))
+
+        for _, cell_array in mesh.cells:
+            for i, c in cell_array:
+                f.write("E3T {} {} {} {} 1\n".format(i+1, c[0], c[1], c[2]))
+
+
+
+register("dm", [".2dm", ".3dm"], read, {"dm": write})
