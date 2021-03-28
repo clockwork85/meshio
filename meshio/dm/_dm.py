@@ -58,20 +58,22 @@ def read_buffer(f):
     if facets.shape[1] == 3:
         cells.append(CellBlock("triangle", facets-1))
     elif facets.shape[1] == 4:
-        cells.append(CellBlock("tetrahedron", facets-1))
+        cells.append(CellBlock("tetra", facets-1))
     else:
         logging.warning(
             "meshio::dm only supports triangles and tetrahedrons. "
             "Skipping {} polygons with {} nodes".format(facets.shape[0],
                                                          f.shape[1])
         )
-    # Unsure what to do with mats at this point.  Will check VTK later
-    # mats = np.array(mats)
-    return Mesh(points, cells)
+    mats = np.array(mats, dtype=np.int32)
+    cell_data = {}
+    cell_data['Region'] = []
+    cell_data['Region'].append(mats)
+    return Mesh(points, cells, cell_data=cell_data)
 
 def write(filename, mesh):
     for c in mesh.cells:
-        if c.type not in ["triangle", "tetrahedron"]:
+        if c.type not in ["triangle", "tetra"]:
             raise WriteError(
                 "ERDC .2dm and .3dm files can only contain triangles or tetrahedrons."
             )

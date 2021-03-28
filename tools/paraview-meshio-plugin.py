@@ -8,7 +8,8 @@ from paraview.util.vtkAlgorithm import (
 )
 from vtkmodules.numpy_interface import dataset_adapter as dsa
 from vtkmodules.vtkCommonDataModel import vtkUnstructuredGrid
-
+import sys
+print(sys.path)
 import meshio
 
 paraview_plugin_version = meshio.__version__

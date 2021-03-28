@@ -81,6 +81,10 @@ def read_buffer(f):
     cells = []
     for f in face_groups:
         if f.shape[1] == 3:
+            print(f"f")
+            print(f"{f}")
+            print(f"f - 1")
+            print(f"{f-1}")
             cells.append(CellBlock("triangle", f - 1))
         elif f.shape[1] == 4:
             cells.append(CellBlock("quad", f - 1))
@@ -90,6 +94,11 @@ def read_buffer(f):
                 "meshio::obj only supports triangles and quads. "
                 "Skipping {} polygons with {} nodes".format(f.shape[0], f.shape[1])
             )
+    print(f"Cells type: {type(cells)}")
+    print(f"Cells[0]: {cells[0]}")
+    print(f"Cells[0][0]: {cells[0][0]}")
+    print(f"Cells[0][1]: {cells[0][1]}")
+    print(f"Point data: {point_data}")
 
     return Mesh(points, cells, point_data=point_data)
 
